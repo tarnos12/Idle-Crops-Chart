@@ -20,11 +20,11 @@
 
         const tdata = [];
         let price = basePrice;
-        const gained = baseStorage;
         let upgradeLevel = 0;
         let harvesterLevel = 1;
         let storageMultiplier = 1;
         tdata.push([ "turns", "storage upgrade purchase price", "storage capacity gained with purchase", "total storage capacity" ]);
+        lastIterationBonus = baseStorage;
         for (let i = 1; i < iterations + 1; i++) {
             // each loop represents buying one storage upgrade...
 
@@ -40,8 +40,9 @@
                 harvesterLevel++;
 
             const harvesterStorage = Math.floor(harvesterLevel * storageBonus) * harvesterMulitiplier;
-
-            tdata.push([ i, price, gained, harvesterStorage ]);
+            const bonusGained = harvesterStorage - lastIterationBonus;
+            lastIterationBonus = harvesterStorage;
+            tdata.push([ i, price, bonusGained, harvesterStorage ]);
 
             // update price afterwards...
             price = Math.round(price * costMultiplier);
