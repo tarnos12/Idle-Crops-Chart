@@ -1,0 +1,100 @@
+<html>
+<head>
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+    <script type="text/javascript">window.addEventListener("load", () => {
+        document.getElementById("calc").addEventListener("click", drawChart);
+        google.charts.load("current", { packages: [ "corechart" ] });
+        google.charts.setOnLoadCallback(drawChart);
+    });
+
+    function drawChart () {
+        const costMultiplier = parseFloat(document.getElementById("cost_multiplier").value);
+        const buyMultiplier = parseFloat(document.getElementById("buy_multiplier").value);
+        const bonusPerLevel = parseFloat(document.getElementById("bonusPerLevel").value);
+        const baseStorage = parseFloat(document.getElementById("base_storage").value);
+        const basePrice = parseFloat(document.getElementById("base_price").value);
+        const levelUpMarker = parseFloat(document.getElementById("levelup_marker").value);
+        const iterations = parseFloat(document.getElementById("iterations").value);
+        const logscale = document.getElementById("logscale").checked;
+        const harvesterMulitiplier = parseFloat(document.getElementById("storageMultiplier").value);// from shop upgrade
+
+        const tdata = [];
+        let price = basePrice;
+        const gained = baseStorage;
+        let upgradeLevel = 0;
+        let harvesterLevel = 1;
+        let storageMultiplier = 1;
+        tdata.push([ "turns", "storage upgrade purchase price", "storage capacity gained with purchase", "total storage capacity" ]);
+        for (let i = 0; i < iterations; i++) {
+            // each loop represents buying one storage upgrade...
+
+            /* LEVEL UP UPGRADE */
+            upgradeLevel++;
+            storageMultiplier += buyMultiplier;
+
+
+            // gained = (baseStorage + i * buyMultiplier) * currentMultiplier; // how much are you getting when you buy it
+            const storageBonus = (baseStorage + upgradeLevel * bonusPerLevel) * storageMultiplier;
+
+            if (i % levelUpMarker === 0)
+                harvesterLevel++;
+
+            const harvesterStorage = Math.floor(harvesterLevel * storageBonus) * harvesterMulitiplier;
+
+            tdata.push([ i, price, gained, harvesterStorage ]);
+
+            // update price afterwards...
+            price = Math.round(price * costMultiplier);
+        }
+
+
+        console.log(tdata);
+
+        const data = google.visualization.arrayToDataTable(tdata);
+        const options = {
+            title: "horizontal axis = harv storage upgrades",
+            // curveType: 'function',
+            legend: { position: "bottom" },
+        };
+
+        if (logscale)
+            options.vAxis = { scaleType: "log" };
+
+
+        const chart = new google.visualization.LineChart(document.getElementById("curve_chart"));
+        chart.draw(data, options);
+    }
+    </script>
+</head>
+<body>
+
+<div>
+    <div id="curve_chart" style="width: 1200px; height: 600px; float:left"></div>
+    <div style="float:left;margin-top:100px;width:400px">
+    </div>
+</div>
+
+<div style="margin-top:100px;clear: both;">
+
+    <table>
+        <Tr><Td>cost multiplier         <Td><input id="cost_multiplier"          value="1.1"><br>
+        <Tr><Td>buy multiplier           <Td><input id="buy_multiplier"            value=".05"><br>
+        <Tr><Td>Bonus Per Level           <Td><input id="bonusPerLevel"            value="500"><br>
+        <Tr><Td>base storage         <Td><input id="base_storage"          value="500"><br>
+        <Tr><Td>base price         <Td><input id="base_price"          value="100"><br>
+        <Tr><Td>levelup marker         <Td><input id="levelup_marker"          value="10"><br>
+        <Tr><Td>Harvester Multiplier         <Td><input id="storageMultiplier"          value="1"><br>
+
+        <Tr><Td>iterations        <Td><input id="iterations"          value="100"><br>
+
+        <Tr><td> use log scale <td> <input id='logscale' type="checkbox" value=1  checked>
+    </table>
+
+    <button id='calc'>Update chart</button>
+
+</div>
+
+
+
+</body>
+</html>
