@@ -14,7 +14,6 @@
         const bonusPerLevel = parseFloat(document.getElementById("bonusPerLevel").value);
         const baseStorage = parseFloat(document.getElementById("base_storage").value);
         const basePrice = parseFloat(document.getElementById("base_price").value);
-        const levelUpMarker = parseFloat(document.getElementById("levelup_marker").value);
         const iterations = parseFloat(document.getElementById("iterations").value);
         const logscale = document.getElementById("logscale").checked;
         const harvesterMulitiplier = parseFloat(document.getElementById("storageMultiplier").value);// from shop upgrade
@@ -22,27 +21,30 @@
 
         const tdata = [];
         let price = basePrice;
-        let upgradeLevel = 0;
-        let storageMultiplier = 1;
+        let upgradeLevel = 1;
+        let storageMultiplier = 1.05;
 
         let crop_progress = 35; //buying a crop every 35 levels (not realistic.. but we just needed to show a bump in there...)
         let gmult = 1;
         let total_spent = 0;
 
         tdata.push([ "turns", "storage upgrade purchase price", "storage capacity gained with purchase", "total storage capacity", 'total spent' ]);
-        lastIterationBonus = baseStorage;
-        for (let i = 0; i < iterations; i++) {
+        for (let i = 1; i < iterations; i++) {
             // each loop represents buying one storage upgrade...
 
-            const bonusPerLevelUpgrade = (upgradeLevel * bonusPerLevel) * gmult;
-            const priceBonusPerLevel = ((1 + upgradeLevel) * bonusPerLevel) * gmult;
-            const storageBonus = (baseStorage + bonusPerLevelUpgrade) * (1 + (buyMultiplier * upgradeLevel)) * gmult;
-            tdata.push([ i, price*gmult, bonusPerLevelUpgrade, storageBonus, total_spent ]);
+            //calculate bonuses and price
+            const getBonus = (baseStorage + bonusPerLevel * upgradeLevel) * storageMultiplier * gmult;
+            const getBonusPerLevel = getBonus - (baseStorage + bonusPerLevel * (upgradeLevel - 1)) * (storageMultiplier - buyMultiplier) * gmult;
+            const getPrice = Math.round(getBonusPerLevel * costMultiplier);
 
-            // update price afterwards...
-            total_spent+=price*gmult;
-            price = Math.round((priceBonusPerLevel) * costMultiplier);
+            console.log(getBonusPerLevel);
+
+            tdata.push([ i, getPrice, getBonusPerLevel, getBonus, total_spent ]);
+
+            //Level up upgrade afterwards
+            storageMultiplier += buyMultiplier;
             upgradeLevel++;
+            total_spent+=getPrice;
             if (i % crop_progress === 0)
                 gmult = gmult*2; //every crop that gets bought, everything doubles
 
@@ -84,7 +86,6 @@
         <Tr><Td>Bonus Per Level           <Td><input id="bonusPerLevel"            value="50"><br>
         <Tr><Td>base storage         <Td><input id="base_storage"          value="500"><br>
         <Tr><Td>base price         <Td><input id="base_price"          value="100"><br>
-        <Tr><Td>levelup marker         <Td><input id="levelup_marker"          value="10"><br>
         <Tr><Td>Harvester Multiplier         <Td><input id="storageMultiplier"          value="1"><br>
 
         <Tr><Td>iterations        <Td><input id="iterations"          value="200"><br>
